@@ -4,6 +4,7 @@ from onshapeInterface.ConfigurationEncoder import ConfigurationEncoder
 from abc import abstractmethod, ABC
 from enum import Enum
 
+# Move this to a text file
 secret_key = "6omX9qirGWPl2ZfPK5Ephr76NbdgqL3ATg57gXKqWIdsjcGs"
 access_key = "w0aYMqeAYCpmYbo8OZAeNv6G"
 base = 'https://cad.onshape.com'
@@ -17,10 +18,8 @@ class ApiMethod(Enum):
 
 class OnshapeAPI(ABC):
     def __init__(self, method : ApiMethod):
-        base = 'https://cad.onshape.com'
+        # base = 'https://cad.onshape.com'
         self.client = Client.get_client()
-        # self.headers = {'Accept': 'application/json;charset=UTF-8;qs=0.09',
-        #                 'Content-Type': 'application/json'}
         self.method = method.value
 
     @abstractmethod
@@ -41,29 +40,22 @@ class OnshapeAPI(ABC):
             params = {'configuration': config}
 
         # Send the request to onshape
+        # multipart post needs to pass post_params
+        # normal post passes body
         if use_post_param:
             response = self.client.api_client.request(method=self.method,  # specific
-                                                           url=self._get_api_url(),  # general-specific
-                                                           query_params=params,  # general
-                                                           headers=self._get_headers(),  # general
-                                                           post_params=payload) # specific
+                                                      url=self._get_api_url(),  # general-specific
+                                                      query_params=params,  # general
+                                                      headers=self._get_headers(),  # general
+                                                      post_params=payload) # specific
         else:
             response = self.client.api_client.request(method=self.method,  # specific
-                                                           url=self._get_api_url(),  # general-specific
-                                                           query_params=params,  # general
-                                                           headers=self._get_headers(),  # general
-                                                           body=payload)  # specific
-        # multipart needs to pass post_params
-        # normal passes body
+                                                      url=self._get_api_url(),  # general-specific
+                                                      query_params=params,  # general
+                                                      headers=self._get_headers(),  # general
+                                                      body=payload)  # specific
         return response
-        # parsed = json.loads(response.data)
-        #
-        # if "notices" in parsed.keys() and len(parsed["notices"]) > 0:
-        #     print("Onshape Error: ")
-        #     print(configuration.numpyParameters)
-        #     return None
 
-        # return parsed
 
 
 

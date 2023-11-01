@@ -2,6 +2,7 @@ import onshapeInterface.RequestUrlCreator as RequestUrlCreator
 import onshapeInterface.OnshapeAPI as OnshapeAPI
 import json
 
+
 class GetStl(OnshapeAPI.OnshapeAPI):
     def __init__(self, url: RequestUrlCreator.OnshapeUrl):
         super(GetStl, self).__init__(OnshapeAPI.ApiMethod.GET)
@@ -12,7 +13,6 @@ class GetStl(OnshapeAPI.OnshapeAPI):
                                                     workspace=url.workspaceID,
                                                     element=url.elementID,
                                                     wvm=url.wvm)
-
 
     def _get_api_url(self):
         print(self.request_url)
@@ -29,6 +29,7 @@ class GetStl(OnshapeAPI.OnshapeAPI):
     def get_response(self, filename):
         with open(filename, 'wb') as f:
             f.write(self.stl.data.encode())
+
 
 if __name__ == "__main__":
     url = RequestUrlCreator.OnshapeUrl("https://cad.onshape.com/documents/c3b4576ef97b70b3e09ba2f0/w/75bec76c270d0cb4899d9ce4/e/2a5362fe0e6cb33b327a98de")
