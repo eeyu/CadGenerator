@@ -18,6 +18,10 @@ if __name__ == "__main__":
     prism2.origin = [90,100,150]
     prism2.dimensions = [100, 200, 300]
     builder.add_request(prism2)
+
+    sphere1 = Request.Sphere("1", diameter=100, origin=[100, 0, 0])
+    builder.add_request(sphere1)
+
     # # #
     hole1 = Request.Hole("1")
     hole1.origin = [-300,75,280]
