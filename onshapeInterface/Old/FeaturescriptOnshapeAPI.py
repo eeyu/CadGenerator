@@ -2,10 +2,10 @@ import json
 from onshape_client.client import Client
 
 from onshapeInterface.FeaturescriptPayloadCreator import FeaturescriptCreator
-from onshapeInterface.JsonParser import JsonToPython
+from onshapeInterface.Old.JsonParser import JsonToPython
 from onshapeInterface.ConfigurationEncoder import ConfigurationEncoder
 from onshapeInterface.Keys import Keys
-from onshapeInterface.RequestUrlCreator import RequestUrlCreator
+from onshapeInterface.ProcessUrl import RequestUrlCreator
 
 class OnshapeAPI:
     def __init__(self, keys : Keys, requestUrlCreator : RequestUrlCreator):
@@ -19,18 +19,18 @@ class OnshapeAPI:
 
         # Set up featurescript to do the request
         requestUrlCreator.setRequest("featurescript")
-        self.api_url = requestUrlCreator.getURL()
+        self.api_url = requestUrlCreator.get_api_url()
 
 
     # inputs is np array, unitsList is string array
     # returns parsed API request, or None if error occurred
     def doAPIRequestForJson(self, configuration : ConfigurationEncoder, attributeName : str):
         # Configuration of the request
-        config = configuration.getEncoding()
+        config = configuration.get_encoding()
         params = {'configuration': config}
 
         # Featurescript to extract attributes of request
-        script, queries = FeaturescriptCreator.getAttribute(attributeName)
+        script, queries = FeaturescriptCreator.get_attribute(attributeName)
         payload = {
             "script": script,
             "queries": queries,

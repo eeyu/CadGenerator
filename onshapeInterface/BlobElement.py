@@ -1,16 +1,16 @@
-import onshapeInterface.RequestUrlCreator as RequestUrlCreator
+import onshapeInterface.ProcessUrl as RequestUrlCreator
 import onshapeInterface.OnshapeAPI as OnshapeAPI
 import json
-from onshapeInterface.Keys import Keys
+
 
 class UploadBlobElement(OnshapeAPI.OnshapeAPI):
     def __init__(self, url: RequestUrlCreator.OnshapeUrl):
         super(UploadBlobElement, self).__init__(OnshapeAPI.ApiMethod.POST)
-        self.request_url = RequestUrlCreator.getURL("v6/blobelements",
-                                                    None,
-                                                    document=url.documentID,
-                                                    workspace=url.workspaceID,
-                                                    wvm=url.wvm)
+        self.request_url = RequestUrlCreator.get_api_url("v6/blobelements",
+                                                         None,
+                                                         document=url.documentID,
+                                                         workspace=url.workspaceID,
+                                                         wvm=url.wvm)
         self.raw_url = url
         self.file = None
         self.encodedFilename = None
@@ -23,43 +23,45 @@ class UploadBlobElement(OnshapeAPI.OnshapeAPI):
                 'Content-Type': 'multipart/form-data'}
 
     def upload_new_file(self):
-        self.request_url = RequestUrlCreator.getURL("v6/blobelements",
-                                                    None,
-                                                    document=self.raw_url.documentID,
-                                                    workspace=self.raw_url.workspaceID,
-                                                    wvm=self.raw_url.wvm)
+        # This does not make usage apparent. refactor
+        self.request_url = RequestUrlCreator.get_api_url("v6/blobelements",
+                                                         None,
+                                                         document=self.raw_url.documentID,
+                                                         workspace=self.raw_url.workspaceID,
+                                                         wvm=self.raw_url.wvm)
         payload = {
             "file": self.file,
-                   "encodedFilename": self.encodedFilename,
-                   "notifyUser": True,
-                   "locationPosition": -1,
-                   "storeInDocument": True,
-                   "translate": False,
-                   "importAppearances": False,
-                   "splitAssembliesIntoMultipleDocuments": False,
-                   "onePartPerDoc": False,
-                   }
+            "encodedFilename": self.encodedFilename,
+            "notifyUser": True,
+            "locationPosition": -1,
+            "storeInDocument": True,
+            "translate": False,
+            "importAppearances": False,
+            "splitAssembliesIntoMultipleDocuments": False,
+            "onePartPerDoc": False,
+        }
         self.make_request(payload=payload, use_post_param=True)
 
     def update_file(self):
-        # URL targets an element id
-        self.request_url = RequestUrlCreator.getURL("v6/blobelements",
-                                                    None,
-                                                    document=self.raw_url.documentID,
-                                                    workspace=self.raw_url.workspaceID,
-                                                    element=self.raw_url.elementID,
-                                                    wvm=self.raw_url.wvm)
+        # update targets an element id
+        # This does not make usage apparent. refactor
+        self.request_url = RequestUrlCreator.get_api_url("v6/blobelements",
+                                                         None,
+                                                         document=self.raw_url.documentID,
+                                                         workspace=self.raw_url.workspaceID,
+                                                         element=self.raw_url.elementID,
+                                                         wvm=self.raw_url.wvm)
         payload = {
             "file": self.file,
-                   "encodedFilename": self.encodedFilename,
-                   "notifyUser": True,
-                   "locationPosition": -1,
-                   "storeInDocument": True,
-                   "translate": False,
-                   "importAppearances": False,
-                   "splitAssembliesIntoMultipleDocuments": False,
-                   "onePartPerDoc": False,
-                   }
+            "encodedFilename": self.encodedFilename,
+            "notifyUser": True,
+            "locationPosition": -1,
+            "storeInDocument": True,
+            "translate": False,
+            "importAppearances": False,
+            "splitAssembliesIntoMultipleDocuments": False,
+            "onePartPerDoc": False,
+        }
         self.make_request(payload=payload, use_post_param=True)
 
 

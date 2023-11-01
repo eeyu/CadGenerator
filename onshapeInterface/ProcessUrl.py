@@ -1,21 +1,22 @@
 # This creates the URL request to send to the API, excluding the payload
 # Use setRequest() and setCategory() based on the Glassworkd API (google)
 
+# Parses a url copy pasted from browser
 class OnshapeUrl:
     def __init__(self, url):
         self.elementID = None
         self.workspaceID = None
         self.documentID = None
         self.wvm = None
-        self.parseStudioURL(url)
+        self.parse_studio_url(url)
 
-    def parseStudioURL(self, url):
+    def parse_studio_url(self, url):
         index = url.find("document")
         index += 1
-        closingIndex = url.find("/", index)
-        index = closingIndex + 1
-        closingIndex = url.find("/", index)
-        self.documentID = url[index: closingIndex]
+        closing_index = url.find("/", index)
+        index = closing_index + 1
+        closing_index = url.find("/", index)
+        self.documentID = url[index: closing_index]
 
         index = url.find("w/")
         self.wvm = "w"
@@ -26,28 +27,25 @@ class OnshapeUrl:
             index = url.find("m/")
             self.wvm = "m"
         index += 1
-        closingIndex = url.find("/", index)
-        index = closingIndex + 1
-        closingIndex = url.find("/", index)
-        self.workspaceID = url[index:closingIndex]
+        closing_index = url.find("/", index)
+        index = closing_index + 1
+        closing_index = url.find("/", index)
+        self.workspaceID = url[index:closing_index]
 
         index = url.find("e/")
         if index != -1:
             index += 1
-            closingIndex = url.find("/", index)
-            index = closingIndex + 1
+            closing_index = url.find("/", index)
+            index = closing_index + 1
             self.elementID = url[index:]
 
 
-def getURL(category : str, request, document: str, workspace: str, wvm: str, element: str = None):
+# Generates the url related to the api
+def get_api_url(category : str, request, document: str, workspace: str, wvm: str, element: str = None):
     s = "https://cad.onshape.com/api/"
     s += category
     s += "/d/" + document
     s += "/" + wvm + "/"
-    # if use_version:
-    #     s += "/v/"
-    # else:
-    #     s += "/w/"
     s += workspace
     if element is not None:
         s += "/e/" + element

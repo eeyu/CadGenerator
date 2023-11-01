@@ -11,6 +11,8 @@ base = 'https://cad.onshape.com'
 client = Client(configuration={"base_url": base,
                                     "access_key": access_key,
                                     "secret_key": secret_key})
+
+
 class ApiMethod(Enum):
     POST = "POST"
     GET = "GET"
@@ -36,7 +38,7 @@ class OnshapeAPI(ABC):
         # Configuration of the request
         params = {}
         if configuration is not None:
-            config = configuration.getEncoding()
+            config = configuration.get_encoding()
             params = {'configuration': config}
 
         # Send the request to onshape

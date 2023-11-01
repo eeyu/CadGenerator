@@ -1,4 +1,4 @@
-from onshapeInterface import RequestUrlCreator, PartStudios, BlobElement
+from onshapeInterface import ProcessUrl, PartStudios, BlobElement
 import json
 from PartGenerator import Request
 from stl import mesh
@@ -26,16 +26,16 @@ if __name__ == "__main__":
     hole1.depth = 600
     builder.add_request(hole1)
     # # #
-    # hole2 = Request.Hole("2")
-    # hole2.origin = [-40,100,200]
-    # hole2.axis = [1,0,0]
-    # hole2.diameter = 50
-    # hole2.depth = 300
-    # builder.add_request(hole2)
+    hole2 = Request.Hole("2")
+    hole2.origin = [-40,100,200]
+    hole2.axis = [1,0,0]
+    hole2.diameter = 50
+    hole2.depth = 300
+    builder.add_request(hole2)
 
-    json_debug_url = RequestUrlCreator.OnshapeUrl("https://cad.onshape.com/documents/c3b4576ef97b70b3e09ba2f0/w/75bec76c270d0cb4899d9ce4/e/1e160786c96002332ab0abbf")
-    json_url = RequestUrlCreator.OnshapeUrl("https://cad.onshape.com/documents/c3b4576ef97b70b3e09ba2f0/w/75bec76c270d0cb4899d9ce4/e/da7f3abe19b2d9b235ec0ffe")
-    part_url = RequestUrlCreator.OnshapeUrl("https://cad.onshape.com/documents/c3b4576ef97b70b3e09ba2f0/w/75bec76c270d0cb4899d9ce4/e/2a5362fe0e6cb33b327a98de")
+    json_debug_url = ProcessUrl.OnshapeUrl("https://cad.onshape.com/documents/c3b4576ef97b70b3e09ba2f0/w/75bec76c270d0cb4899d9ce4/e/1e160786c96002332ab0abbf")
+    json_url = ProcessUrl.OnshapeUrl("https://cad.onshape.com/documents/c3b4576ef97b70b3e09ba2f0/w/75bec76c270d0cb4899d9ce4/e/da7f3abe19b2d9b235ec0ffe")
+    part_url = ProcessUrl.OnshapeUrl("https://cad.onshape.com/documents/c3b4576ef97b70b3e09ba2f0/w/75bec76c270d0cb4899d9ce4/e/2a5362fe0e6cb33b327a98de")
 
     # Send the json
     name = "aaa"

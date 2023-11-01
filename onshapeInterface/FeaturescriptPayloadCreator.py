@@ -1,8 +1,7 @@
 # Class creates the payload to send via the Featurescript API endpoint
 
-import onshapeInterface.Names as names
 class FeaturescriptCreator:
-    def getAttribute(attributeName : str):
+    def get_attribute(attribute_name : str):
         script = """
         function (context is Context, queries is map)
         {{
@@ -12,11 +11,6 @@ class FeaturescriptCreator:
             var outputKinematics = getAttribute(context, {{"entity" : instantiatedBodies, "name" : "{attributeName}"}});
             return outputKinematics;
         }}
-        """.format(attributeName = attributeName)
+        """.format(attributeName=attribute_name)
         queries = []
         return script, queries
-    # def getOutputKinematics(self):
-    #     return self.getAttribute(names.KINEMATICS_ATTRIBUTE_NAME)
-    #
-    # def getKinematicSamples(self):
-    #     return self.getAttribute(names.SAMPLES_ATTRIBUTE_NAME)

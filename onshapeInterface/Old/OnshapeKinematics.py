@@ -1,6 +1,6 @@
 import requests
 import json 
-from onshapeInterface.RequestUrlCreator import RequestUrlCreator
+from onshapeInterface.ProcessUrl import RequestUrlCreator
 from onshape_client.client import Client
 from onshape_client.onshape_url import OnshapeElement
 import time
@@ -42,9 +42,9 @@ class OnshapeKinematicsAPI:
     # inputs is np array, unitsList is string array
     def getOutputKinematics(self, inputs, unitsList):
         # Setup the request
-        script, queries = FeaturescriptCreator.getAttribute(Names.KINEMATICS_ATTRIBUTE_NAME)
+        script, queries = FeaturescriptCreator.get_attribute(Names.KINEMATICS_ATTRIBUTE_NAME)
         self.urlCreator.setRequest("featurescript")
-        api_url = self.urlCreator.getURL()
+        api_url = self.urlCreator.get_api_url()
 
         inputsAsVWU = []
         for i in range(self.numInputs):

@@ -1,4 +1,4 @@
-import onshapeInterface.RequestUrlCreator as RequestUrlCreator
+import onshapeInterface.ProcessUrl as RequestUrlCreator
 import onshapeInterface.OnshapeAPI as OnshapeAPI
 import json
 
@@ -7,12 +7,12 @@ class GetStl(OnshapeAPI.OnshapeAPI):
     def __init__(self, url: RequestUrlCreator.OnshapeUrl):
         super(GetStl, self).__init__(OnshapeAPI.ApiMethod.GET)
         self.stl = None
-        self.request_url = RequestUrlCreator.getURL("partstudios",
+        self.request_url = RequestUrlCreator.get_api_url("partstudios",
                                                     "stl",
-                                                    document=url.documentID,
-                                                    workspace=url.workspaceID,
-                                                    element=url.elementID,
-                                                    wvm=url.wvm)
+                                                         document=url.documentID,
+                                                         workspace=url.workspaceID,
+                                                         element=url.elementID,
+                                                         wvm=url.wvm)
 
     def _get_api_url(self):
         print(self.request_url)
