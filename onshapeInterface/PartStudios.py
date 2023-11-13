@@ -23,8 +23,12 @@ class GetStl(OnshapeAPI.OnshapeAPI):
                 'Content-Type': 'application/json'}
 
     def send_request(self):
-        # payload = {}
-        self.stl = self.make_request()
+        payload = {
+            "units": "millimeter",
+            "grouping": "true",
+            "scale": 1
+        }
+        self.stl = self.make_request(payload=payload, use_post_param=False)
     
     def get_response(self, filename):
         with open(filename, 'wb') as f:

@@ -44,18 +44,24 @@ class OnshapeAPI(ABC):
         # Send the request to onshape
         # multipart post needs to pass post_params
         # normal post passes body
-        if use_post_param:
-            response = self.client.api_client.request(method=self.method,  # specific
-                                                      url=self._get_api_url(),  # general-specific
-                                                      query_params=params,  # general
-                                                      headers=self._get_headers(),  # general
-                                                      post_params=payload) # specific
+        if self.method == ApiMethod.POST.name:
+            if use_post_param:
+                response = self.client.api_client.request(method=self.method,  # specific
+                                                          url=self._get_api_url(),  # general-specific
+                                                          query_params=params,  # general
+                                                          headers=self._get_headers(),  # general
+                                                          post_params=payload) # specific
+            else:
+                response = self.client.api_client.request(method=self.method,  # specific
+                                                          url=self._get_api_url(),  # general-specific
+                                                          query_params=params,  # general
+                                                          headers=self._get_headers(),  # general
+                                                          body=payload)  # specific
         else:
             response = self.client.api_client.request(method=self.method,  # specific
                                                       url=self._get_api_url(),  # general-specific
-                                                      query_params=params,  # general
-                                                      headers=self._get_headers(),  # general
-                                                      body=payload)  # specific
+                                                      query_params=payload,  # general
+                                                      headers=self._get_headers())  # general
         return response
 
 

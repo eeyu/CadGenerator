@@ -1,9 +1,14 @@
 from abc import ABC, abstractmethod
+from enum import Enum
 
+class BooleanType(Enum):
+    ADD = "ADD"
+    SUBTRACT = "SUBTRACT"
 
 class Request(ABC):
-    def __init__(self, name):
+    def __init__(self, name, boolean_type: BooleanType):
         self.name = name
+        self.boolean_type = boolean_type
 
     @abstractmethod
     def get_type(self) -> str:
@@ -16,6 +21,8 @@ class Request(ABC):
     def get_contents(self) -> dict:
         pass
 
+    def get_boolean_type(self) -> str:
+        return self.boolean_type.name
 
 class RequestBuilder:
     def __init__(self):
@@ -25,6 +32,7 @@ class RequestBuilder:
         formatted_request = {
             "name": request.get_type() + request.get_name(),
             "request_type": request.get_type(),
+            "boolean_type": request.get_boolean_type(),
             "contents": request.get_contents()
             }
         self.full_request.append(formatted_request)
@@ -33,12 +41,13 @@ class RequestBuilder:
 class Hole(Request):
     # All units in mm
     def __init__(self, name: str,
+                 boolean_type: BooleanType,
                  axis=[1, 1, 1],
                  diameter=20,
                  depth=25,
                  origin=[10, 10, 10],
                  is_thru=False):
-        super(Hole, self).__init__(name)
+        super(Hole, self).__init__(name, boolean_type)
         self.axis = axis
         self.diameter = diameter
         self.depth = depth
@@ -62,9 +71,10 @@ class Hole(Request):
 class Sphere(Request):
     # All units in mm
     def __init__(self, name: str,
+                 boolean_type: BooleanType,
                  diameter=20,
                  origin=[10, 10, 10]):
-        super(Sphere, self).__init__(name)
+        super(Sphere, self).__init__(name, boolean_type)
         self.diameter = diameter
         self.origin = origin
 
@@ -82,10 +92,11 @@ class Sphere(Request):
 class Prism(Request):
     # All units in mm
     def __init__(self, name: str,
+                 boolean_type: BooleanType,
                  dimensions=[10, 20, 30],
                  origin=[10, 10, 10],
                  origin_is_corner=True):
-        super(Prism, self).__init__(name)
+        super(Prism, self).__init__(name, boolean_type)
         self.dimensions = dimensions # xyz
         self.origin = origin
         self.origin_is_corner = origin_is_corner
