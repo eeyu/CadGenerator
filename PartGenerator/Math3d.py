@@ -25,6 +25,13 @@ def is_within_cylinder(cylinder: Request.Hole, point: np.array, tolerance):
         return False
     return True
 
+def check_triad_in_hole(triad, cylinder):
+    for point in triad:
+        in_c = is_within_cylinder(cylinder, point, 1e-2)
+        if not in_c:
+            return False
+    return True
+
 if __name__ == "__main__":
 
     point = [100. ,   124.148, 193.53]

@@ -1,6 +1,9 @@
 from abc import ABC, abstractmethod
 from enum import Enum
 
+import numpy as np
+
+
 class BooleanType(Enum):
     ADD = "ADD"
     SUBTRACT = "SUBTRACT"
@@ -42,10 +45,10 @@ class Hole(Request):
     # All units in mm
     def __init__(self, name: str,
                  boolean_type: BooleanType,
-                 axis=[1, 1, 1],
+                 axis=np.array([1, 1, 1]),
                  diameter=20,
                  depth=25,
-                 origin=[10, 10, 10],
+                 origin=np.array([10, 10, 10]),
                  is_thru=False):
         super(Hole, self).__init__(name, boolean_type)
         self.axis = axis
@@ -59,11 +62,11 @@ class Hole(Request):
 
     def get_contents(self) -> dict:
         contents = {
-                "axis": self.axis,
+                "axis": self.axis.tolist(),
                 "diameter": self.diameter,
                 "is_thru": self.is_thru,
                 "depth": self.depth,
-                "origin": self.origin
+                "origin": self.origin.tolist()
             }
         return contents
 
@@ -73,7 +76,7 @@ class Sphere(Request):
     def __init__(self, name: str,
                  boolean_type: BooleanType,
                  diameter=20,
-                 origin=[10, 10, 10]):
+                 origin=np.array([10, 10, 10])):
         super(Sphere, self).__init__(name, boolean_type)
         self.diameter = diameter
         self.origin = origin
@@ -84,7 +87,7 @@ class Sphere(Request):
     def get_contents(self) -> dict:
         contents = {
                 "diameter": self.diameter,
-                "origin": self.origin
+                "origin": self.origin.tolist()
             }
         return contents
 
@@ -93,23 +96,29 @@ class Prism(Request):
     # All units in mm
     def __init__(self, name: str,
                  boolean_type: BooleanType,
-                 dimensions=[10, 20, 30],
-                 origin=[10, 10, 10],
+                 dimensions=np.array([10, 20, 30]),
+                 origin=np.array([10, 10, 10]),
                  origin_is_corner=True):
         super(Prism, self).__init__(name, boolean_type)
         self.dimensions = dimensions # xyz
         self.origin = origin
         self.origin_is_corner = origin_is_corner
+
+        # self.origin_is_corner = origin_is_corner
         # also x z axis
 
     def get_type(self) -> str:
         return "prism"
 
     def get_contents(self) -> dict:
+        if self.origin_is_corner:
+            origin = self.origin
+        else:
+            origin = self.origin - self.dimensions / 2.0
+
         contents = {
-                "dimensions": self.dimensions,
-                "origin": self.origin,
-                "origin_is_corner": self.origin_is_corner
+                "dimensions": self.dimensions.tolist(),
+                "origin": origin.tolist(),
             }
         return contents
 
