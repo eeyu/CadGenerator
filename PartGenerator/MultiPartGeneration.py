@@ -12,7 +12,7 @@ import numpy as np
 import Send
 
 def random_boolean_type():
-    if np.random.randint(0, 1) == 0:
+    if np.random.randint(0, 2) == 0:
         return Request.BooleanType.ADD
     return Request.BooleanType.SUBTRACT
 
@@ -91,6 +91,9 @@ if __name__ == "__main__":
     cols = 3
     # Plot
     figure, axes = plt.subplots(rows, cols, subplot_kw=dict(projection="3d"))
+    mngr = figure.canvas.manager.window.geometry("800x800+0+0")
+    # mngr.window.setGeometry(50, 100, 640, 545)
+
     for r in range(rows):
         for c in range(cols):
             axes[r,c].set_axis_off()

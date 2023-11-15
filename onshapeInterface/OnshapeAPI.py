@@ -57,7 +57,7 @@ class OnshapeAPI(ABC):
                                                           query_params=params,  # general
                                                           headers=self._get_headers(),  # general
                                                           body=payload)  # specific
-        else:
+        else: # GET
             response = self.client.api_client.request(method=self.method,  # specific
                                                       url=self._get_api_url(),  # general-specific
                                                       query_params=payload,  # general
