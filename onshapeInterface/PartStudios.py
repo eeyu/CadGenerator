@@ -37,13 +37,13 @@ class GetStl(OnshapeAPI.OnshapeAPI):
 class GetFeatureList(OnshapeAPI.OnshapeAPI):
     def __init__(self, url: RequestUrlCreator.OnshapeUrl):
         super(GetFeatureList, self).__init__(OnshapeAPI.ApiMethod.GET)
-        self.stl = None
         self.request_url = RequestUrlCreator.get_api_url("partstudios",
                                                          "features",
                                                          document=url.documentID,
                                                          workspace=url.workspaceID,
                                                          element=url.elementID,
                                                          wvm=url.wvm)
+        self.microversion_id = None
 
     def _get_api_url(self):
         return self.request_url
@@ -60,7 +60,9 @@ class GetFeatureList(OnshapeAPI.OnshapeAPI):
             "noSketchGeometry": False
         }
         response = self.make_request(payload=payload, use_post_param=False)
-        return response.data
+        response = json.loads(response.data)
+        self.microversion_id = response["sourceMicroversion"]
+        return response
 
 class AddFeature(OnshapeAPI.OnshapeAPI):
     def __init__(self, url: RequestUrlCreator.OnshapeUrl):
@@ -84,10 +86,40 @@ class AddFeature(OnshapeAPI.OnshapeAPI):
     def send_request(self):
         payload = {
             "sourceMicroversion": self.source_microversion,
-            "feature": self.json_feature
+            "feature": self.json_feature,
+            "rejectMicroversionSkew": False
         }
         response = self.make_request(payload=payload, use_post_param=False)
         return response.data
+
+class NewPartStudio(OnshapeAPI.OnshapeAPI):
+    def __init__(self, url: RequestUrlCreator.OnshapeUrl):
+        super(NewPartStudio, self).__init__(OnshapeAPI.ApiMethod.POST)
+        self.request_url = RequestUrlCreator.get_api_url("partstudios",
+                                                         "",
+                                                         document=url.documentID,
+                                                         workspace=url.workspaceID,
+                                                         wvm=url.wvm)
+        self.name = None
+        self.created_element_id = None
+        self.microversion = None
+
+    def _get_api_url(self):
+        return self.request_url
+
+    def _get_headers(self):
+        return {'Accept': 'application/json;charset=UTF-8; qs=0.09',
+                'Content-Type': 'application/json'}
+
+    def send_request(self):
+        payload = {
+            "name": self.name
+        }
+        response = self.make_request(payload=payload, use_post_param=False)
+        response = json.loads(response.data)
+        self.created_element_id = response["id"]
+        self.microversion = response["microversionId"]
+        return response
 
 if __name__ == "__main__":
     # url = RequestUrlCreator.OnshapeUrl("https://cad.onshape.com/documents/c3b4576ef97b70b3e09ba2f0/w/75bec76c270d0cb4899d9ce4/e/2a5362fe0e6cb33b327a98de")
