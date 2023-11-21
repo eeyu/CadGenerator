@@ -32,6 +32,9 @@ def check_triad_in_hole(triad, cylinder):
             return False
     return True
 
+def orientation_to_axis(orientation: np.array):
+    return np.array([1,1,1])
+
 if __name__ == "__main__":
 
     point = [100. ,   124.148, 193.53]
