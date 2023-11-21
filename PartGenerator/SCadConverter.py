@@ -8,31 +8,12 @@ import Math3d
 # build a tree
 # Master: intersection, union, difference
 # Subitems: requests or master
+from enum import Enum
 
-class CombinedRequest(ABC):
-    def __init__(self, boolean_type: str, name: str):
-        self.boolean_type = boolean_type
-        self.base_request = None
-        self.further_requests = [] # Request or CombiedRequest
-        self.name = name
-
-    def add_request(self, request: Request):
-        if self.base_request is None:
-            request.name = self.name
-            self.base_request = request
-        else:
-            sub_name = self.name + str(len(self.further_requests))
-            request.name = sub_name
-        self.further_requests.append(request)
-
-
-class UnionRequest(CombinedRequest):
-    def __init__(self):
-        pass
-
-
-
-COMBINED_NAMES = ["union", "difference", "intersection"]
+BOOLEAN_NAMES_MAP = {"union": Request.BooleanType,
+                      "difference": Request.BooleanType,
+                      "intersection": Request.BooleanType
+                     }
 PRIMITIVE_NAMES = ["sphere", "cube", "cylinder"]
 TRANSLATE = "translate"
 
@@ -136,14 +117,12 @@ def build_primitive_request(first_line: str, scad_file: io.TextIOWrapper):
             diameter = arguments["r"] * 2.0
         else:
             diameter = arguments["d"]
-        return Request.Sphere(name="a",
+        return Request.Sphere(id="a",
                               origin=translation,
-                              diameter=diameter,
-                              boolean_type=Request.BooleanType.ADD)
+                              diameter=diameter)
     elif "cube" in function_names:
         arguments = functions["cube"]
-        return Request.Prism(name="a",
-                             boolean_type=Request.BooleanType.ADD,
+        return Request.Prism(id="a",
                              dimensions=arguments["size"],
                              origin=translation,
                              origin_is_corner=not arguments["center"])
@@ -154,23 +133,22 @@ def build_primitive_request(first_line: str, scad_file: io.TextIOWrapper):
             diameter = arguments["r"] * 2.0
         else:
             diameter = arguments["d"]
-        return Request.Hole(name="a",
-                            boolean_type=Request.BooleanType.ADD,
+        return Request.Hole(id="a",
                             axis=axis,
                             depth=arguments["h"],
                             origin=translation,
                             diameter=diameter)
     # end at ;
-def build_combined_request(first_line: str, scad_file: io.TextIOWrapper):
-    combined_name = read_function_name_in_line(first_line)
-    combined_request = CombinedRequest(name="A", boolean_type=combined_name)
+def build_boolean_request(first_line: str, scad_file: io.TextIOWrapper):
+    boolean_name = read_function_name_in_line(first_line)
+    combined_request = Request.BooleanRequest(name="A", boolean_type=BOOLEAN_NAMES_MAP[boolean_name])
     while True: # Continue until reach "}"
         line = scad_file.readline()
         print(line)
         function_name = read_function_name_in_line(line)
         if function_name is not None:
-            if function_name in COMBINED_NAMES:
-                request = build_combined_request(first_line=line, scad_file=scad_file)
+            if function_name in BOOLEAN_NAMES_MAP.keys():
+                request = build_boolean_request(first_line=line, scad_file=scad_file)
             else: # normal request
                 request = build_primitive_request(first_line=line, scad_file=scad_file)
             combined_request.add_request(request)
@@ -188,7 +166,7 @@ def build_tree_from_scad(scad_file_name: str):
         while function_name is None:
             first_line = f.readline()
             function_name = read_function_name_in_line(first_line)
-        return build_combined_request(first_line, f)
+        return build_boolean_request(first_line, f)
 
 def print_file_line(f):
     next_line = f.readline()

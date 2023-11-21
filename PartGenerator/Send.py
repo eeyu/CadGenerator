@@ -35,7 +35,7 @@ if __name__ == "__main__":
     # Generate the geometry & build into json
     builder = Request.RequestBuilder()
 
-    prism1 = Request.Prism("1", Request.BooleanType.ADD, origin_is_corner=True)
+    prism1 = Request.Prism("1", Request.BooleanType.UNION, origin_is_corner=True)
     prism1.origin = np.array([0,0,0])
     prism1.dimensions = np.array([100, 200, 300])
     builder.add_request(prism1)
