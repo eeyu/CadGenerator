@@ -9,19 +9,13 @@ from matplotlib import pyplot
 import Math3d as math3d
 import numpy as np
 
-def build_part(builder: Request.RequestBuilder, part_url: ProcessUrl.OnshapeUrl, json_url: ProcessUrl.OnshapeUrl, name: str) -> mesh.Mesh:
+def build_part(json_dict: dict, part_url: ProcessUrl.OnshapeUrl, json_url: ProcessUrl.OnshapeUrl, name: str) -> mesh.Mesh:
     # Send the json
-    json_file = json.dumps(builder.full_request)
+    json_file = json.dumps(json_dict)
     uploadBlobElement = BlobElement.UploadBlobElement(json_url)
     uploadBlobElement.file = json_file
     uploadBlobElement.encodedFilename = name + ".json"
     uploadBlobElement.update_file()
-
-    # # Readable format within onshape
-    # uploadBlobElement = BlobElement.UploadBlobElement(json_debug_url)
-    # uploadBlobElement.encodedFilename = name + "_json.txt"
-    # uploadBlobElement.file = json_file
-    # uploadBlobElement.update_file()
 
     # Rereieve the stl
     getStl = PartStudios.GetStl(part_url)
@@ -67,7 +61,7 @@ if __name__ == "__main__":
     json_url = ProcessUrl.OnshapeUrl("https://cad.onshape.com/documents/c3b4576ef97b70b3e09ba2f0/w/75bec76c270d0cb4899d9ce4/e/43845e67493d95a88592d49d")
     part_url = ProcessUrl.OnshapeUrl("https://cad.onshape.com/documents/c3b4576ef97b70b3e09ba2f0/w/75bec76c270d0cb4899d9ce4/e/2a5362fe0e6cb33b327a98de")
 
-    your_mesh = build_part(builder, part_url=part_url, json_url=json_url, name="aaa")
+    your_mesh = build_part(builder.full_request, part_url=part_url, json_url=json_url, name="aaa")
     # Plot
     figure = pyplot.figure()
     axes = figure.add_subplot(projection='3d')

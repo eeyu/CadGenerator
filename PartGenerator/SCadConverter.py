@@ -3,6 +3,9 @@ from abc import ABC, abstractmethod
 import Request
 import numpy as np
 import Math3d
+import json
+import onshapeInterface.ProcessUrl as ProcessUrl
+import Send
 
 # parse through line by line
 # build a tree
@@ -10,9 +13,9 @@ import Math3d
 # Subitems: requests or master
 from enum import Enum
 
-BOOLEAN_NAMES_MAP = {"union": Request.BooleanType,
-                      "difference": Request.BooleanType,
-                      "intersection": Request.BooleanType
+BOOLEAN_NAMES_MAP = {"union": Request.BooleanType.UNION,
+                      "difference": Request.BooleanType.SUBTRACT,
+                      "intersection": Request.BooleanType.INTERSECT
                      }
 PRIMITIVE_NAMES = ["sphere", "cube", "cylinder"]
 TRANSLATE = "translate"
@@ -35,7 +38,9 @@ def read_vector_from_text(text: str):
         array.append(float(i))
     return np.array(array)
 
-# TODO vectors are separates by "," but so are arguments. need to concatenate for vectors
+# Returns either:
+# - Dictionary of arg_name: arg_value
+# - Single value: arg_value (if there is a single unnamed argument)
 def read_arguments_in_line(line: str):
     start = line.find("(")
     end = line.find(")")
@@ -58,24 +63,30 @@ def read_arguments_in_line(line: str):
             arguments_raw.append(token)
         i += 1
 
-    # Separate into dictionary
-    arguments = {}
-    for raw_argument in arguments_raw:
-        equals_ind = raw_argument.find("=")
-        name = raw_argument[:equals_ind]
 
-        value = raw_argument[equals_ind+1:]
-        if value == "true":
-            value = True
-        elif value == "false":
-            value = False
-        elif "[" in value:
-            value = read_vector_from_text(value)
-        else:
-            value = float(value)
+    if len(arguments_raw) == 1 and arguments_raw[0].find("=") == -1:
+        # There is only 1 unnamed argument ex. translate([1.0, 2.3, 4.1])
+        return convert_text_to_value(arguments_raw[0])
+    else:
+        # Separate into dictionary
+        arguments = {}
+        for raw_argument in arguments_raw:
+            equals_ind = raw_argument.find("=")
+            name = raw_argument[:equals_ind]
 
-        arguments[name] = value
-    return arguments
+            value = raw_argument[equals_ind+1:]
+            arguments[name] = convert_text_to_value(value)
+        return arguments
+
+def convert_text_to_value(text: str):
+    if text == "true":
+        return True
+    elif text == "false":
+        return False
+    elif "[" in text:
+        return read_vector_from_text(text)
+    else:
+        return float(text)
 
 def read_function_in_line(line: str):
     function_name = read_function_name_in_line(line)
@@ -117,13 +128,11 @@ def build_primitive_request(first_line: str, scad_file: io.TextIOWrapper):
             diameter = arguments["r"] * 2.0
         else:
             diameter = arguments["d"]
-        return Request.Sphere(id="a",
-                              origin=translation,
+        return Request.Sphere(origin=translation,
                               diameter=diameter)
     elif "cube" in function_names:
         arguments = functions["cube"]
-        return Request.Prism(id="a",
-                             dimensions=arguments["size"],
+        return Request.Prism(dimensions=arguments["size"],
                              origin=translation,
                              origin_is_corner=not arguments["center"])
     elif "cylinder" in function_names:
@@ -133,18 +142,16 @@ def build_primitive_request(first_line: str, scad_file: io.TextIOWrapper):
             diameter = arguments["r"] * 2.0
         else:
             diameter = arguments["d"]
-        return Request.Hole(id="a",
-                            axis=axis,
+        return Request.Hole(axis=axis,
                             depth=arguments["h"],
                             origin=translation,
                             diameter=diameter)
     # end at ;
-def build_boolean_request(first_line: str, scad_file: io.TextIOWrapper):
+def build_boolean_request(first_line: str, scad_file: io.TextIOWrapper) -> Request.BooleanRequest:
     boolean_name = read_function_name_in_line(first_line)
-    combined_request = Request.BooleanRequest(name="A", boolean_type=BOOLEAN_NAMES_MAP[boolean_name])
+    combined_request = Request.BooleanRequest(boolean_type=BOOLEAN_NAMES_MAP[boolean_name])
     while True: # Continue until reach "}"
         line = scad_file.readline()
-        print(line)
         function_name = read_function_name_in_line(line)
         if function_name is not None:
             if function_name in BOOLEAN_NAMES_MAP.keys():
@@ -159,7 +166,7 @@ def build_boolean_request(first_line: str, scad_file: io.TextIOWrapper):
     return combined_request
 
 
-def build_tree_from_scad(scad_file_name: str):
+def build_tree_from_scad(scad_file_name: str) -> Request.BooleanRequest:
     with open(scad_file_name, "r") as f:
         first_line = f.readline()
         function_name = read_function_name_in_line(first_line)
@@ -178,6 +185,12 @@ if __name__ == "__main__":
 
     filename = "cube.scad"
     combined_requset = build_tree_from_scad(filename)
+    json_request = combined_requset.get_formatted_request()
 
-    a = "sphere(r = 57, $fn = 12);"
-    print(read_arguments_in_line(a))
+    json_url = ProcessUrl.OnshapeUrl("https://cad.onshape.com/documents/c3b4576ef97b70b3e09ba2f0/w/ada9dc9da5700854d4df4e25/e/43845e67493d95a88592d49d")
+    part_url = ProcessUrl.OnshapeUrl("https://cad.onshape.com/documents/c3b4576ef97b70b3e09ba2f0/w/ada9dc9da5700854d4df4e25/e/2a5362fe0e6cb33b327a98de")
+
+    your_mesh = Send.build_part(json_request, part_url=part_url, json_url=json_url, name="aaa")
+    # print(json.dumps(json_request, indent=4))
+    # a = "sphere(r = 57, $fn = 12);"
+    # print(read_arguments_in_line(a))

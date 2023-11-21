@@ -1,17 +1,19 @@
 from abc import ABC, abstractmethod
 from enum import Enum
+import uuid
 
 import numpy as np
 
-class RequestGroup(Enum):
+class RequestClass(Enum):
     PRIMITIVE = "PRIMITIVE"
     BOOLEAN = "BOOLEAN"
 
 
 class Request(ABC):
-    def __init__(self, id, request_group: RequestGroup):
-        self.id = id
-        self.request_group = request_group
+    def __init__(self, request_class: RequestClass):
+        self.id = str(uuid.uuid4())
+        self.request_class = request_class
+        self.height = 0
 
     @abstractmethod
     def get_method(self) -> str:
@@ -26,10 +28,11 @@ class Request(ABC):
 
     def get_formatted_request(self) -> dict:
         formatted_request = {
-            "id": self.get_method() + self.get_id(),
-            "request_group": self.request_group,
+            "request_class": self.request_class.name,
             "request_method": self.get_method(),
-            "contents": self.get_contents()
+            "id": self.get_id(),
+            "height": self.height,
+            "contents": self.get_contents(),
             }
         return formatted_request
 
@@ -49,13 +52,13 @@ class RequestBuilder:
 
 class Hole(Request):
     # All units in mm
-    def __init__(self, id: str,
+    def __init__(self,
                  axis=np.array([1, 1, 1]),
                  diameter=20,
                  depth=25,
                  origin=np.array([10, 10, 10]),
                  is_thru=False):
-        super(Hole, self).__init__(id, RequestGroup.PRIMITIVE)
+        super(Hole, self).__init__(RequestClass.PRIMITIVE)
         self.axis = axis
         self.diameter = diameter
         self.depth = depth
@@ -78,10 +81,10 @@ class Hole(Request):
 
 class Sphere(Request):
     # All units in mm
-    def __init__(self, id: str,
+    def __init__(self,
                  diameter=20,
                  origin=np.array([10, 10, 10])):
-        super(Sphere, self).__init__(id, RequestGroup.PRIMITIVE)
+        super(Sphere, self).__init__(RequestClass.PRIMITIVE)
         self.diameter = diameter
         self.origin = origin
 
@@ -98,11 +101,11 @@ class Sphere(Request):
 
 class Prism(Request):
     # All units in mm
-    def __init__(self, id: str,
+    def __init__(self,
                  dimensions=np.array([10, 20, 30]),
                  origin=np.array([10, 10, 10]),
                  origin_is_corner=True):
-        super(Prism, self).__init__(id, RequestGroup.PRIMITIVE)
+        super(Prism, self).__init__(RequestClass.PRIMITIVE)
         self.dimensions = dimensions # xyz
         self.origin = origin
         self.origin_is_corner = origin_is_corner
@@ -131,19 +134,17 @@ class BooleanType(Enum):
     INTERSECT = "INTERSECT"
 
 class BooleanRequest(Request):
-    def __init__(self, boolean_type: BooleanType, name: str):
-        super(BooleanRequest, self).__init__(name, RequestGroup.BOOLEAN)
+    def __init__(self, boolean_type: BooleanType):
+        super(BooleanRequest, self).__init__(RequestClass.BOOLEAN)
         self.boolean_type = boolean_type
         self.base_request = None
         self.further_requests = [] # Request or CombiedRequest
 
     def add_request(self, request: Request):
         if self.base_request is None:
-            request.id = self.get_id()
+            self.id = request.id
             self.base_request = request
-        else:
-            sub_name = self.get_id() + str(len(self.further_requests))
-            request.id = sub_name
+            self.height = request.height + 1
         self.further_requests.append(request)
 
     def get_method(self) -> str:
