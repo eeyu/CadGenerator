@@ -29,28 +29,28 @@ if __name__ == "__main__":
     # Generate the geometry & build into json
     builder = Request.RequestBuilder()
 
-    prism1 = Request.Prism("1", Request.BooleanType.UNION, origin_is_corner=True)
+    prism1 = Request.Prism(origin_is_corner=True)
     prism1.origin = np.array([0,0,0])
     prism1.dimensions = np.array([100, 200, 300])
     builder.add_request(prism1)
 
-    prism2 = Request.Prism("2", Request.BooleanType.SUBTRACT, origin_is_corner=False)
+    prism2 = Request.Prism(origin_is_corner=False)
     prism2.origin = np.array([90,50,150])
     prism2.dimensions = np.array([100, 200, 300])
     builder.add_request(prism2)
 
-    sphere1 = Request.Sphere("1", boolean_type=Request.BooleanType.SUBTRACT, diameter=100, origin=np.array([100, 0, 0]))
+    sphere1 = Request.Sphere(diameter=100, origin=np.array([100, 0, 0]))
     builder.add_request(sphere1)
 
     # # #
-    hole1 = Request.Hole("1", Request.BooleanType.SUBTRACT)
+    hole1 = Request.Hole()
     hole1.origin = np.array([-300,75,280])
     hole1.axis = np.array([1,0,0])
     hole1.diameter = 30
     hole1.depth = 600
     builder.add_request(hole1)
     # # #
-    hole2 = Request.Hole("2", Request.BooleanType.SUBTRACT)
+    hole2 = Request.Hole()
     hole2.origin = np.array([-40,100,200])
     hole2.axis = np.array([1,0,0])
     hole2.diameter = 50

@@ -2,3 +2,4 @@ onshape-client
 numpy
 numpy-stl
 matplotlib
+scipy

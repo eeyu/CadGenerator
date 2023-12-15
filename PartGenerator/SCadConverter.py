@@ -1,11 +1,17 @@
 import io
 from abc import ABC, abstractmethod
+from collections import OrderedDict
 import Request
 import numpy as np
 import Math3d
+import os
 import json
+from csg import tokenizer
 import onshapeInterface.ProcessUrl as ProcessUrl
 import Send
+
+# TODO: Finish cylinder
+# TODO: more robust to scad file format
 
 # parse through line by line
 # build a tree
@@ -95,56 +101,66 @@ def read_function_in_line(line: str):
 
 # dictionary of function_name: arguments
 # reads lines building a primitive until reach a ;
-def read_primitive_functions(first_line: str, scad_file: io.TextIOWrapper) -> dict:
-    functions = {}
+def read_primitive_functions(first_line: str, scad_file: io.TextIOWrapper) -> OrderedDict:
+    functions = OrderedDict()
     function_name, arguments = read_function_in_line(first_line)
     functions[function_name] = arguments
     while True:
         line = scad_file.readline()
+        if ";" in line: # Assumes ; is on its own line, which will occur after cleaning
+            break
         function_name, arguments = read_function_in_line(line)
         functions[function_name] = arguments
-        if ";" in line:
-            break
+
 
     return functions
 
 def build_primitive_request(first_line: str, scad_file: io.TextIOWrapper):
     functions = read_primitive_functions(first_line, scad_file)
-    function_names = functions.keys()
+    function_names = list(functions.keys())
+    function_names.reverse()
 
-    # get rotate
-    orientation = np.array([0.0, 0.0, 0.0])
-    if "rotate" in function_names:
-        orientation = functions["rotate"]
-    axis = Math3d.orientation_to_axis(orientation)
+# TODO translate/rotate are in an order
+    csys = Math3d.CoordSystem()
+    for function_name in function_names:
+        # get rotate
+        if "rotate" == function_name:
+            orientation = functions["rotate"]
+            csys.rotate(xyz_angles=orientation)
 
-    translation = np.array([0.0, 0.0, 0.0])
-    if "translate" in function_names:
-        translation = functions["translate"]
+        if "translate" == function_name:
+            translation = functions["translate"]
+            csys.translate(translation)
 
     if "sphere" in function_names:
         arguments = functions["sphere"]
-        if arguments["r"] is not None:
+        if "r" in arguments:
             diameter = arguments["r"] * 2.0
         else:
             diameter = arguments["d"]
-        return Request.Sphere(origin=translation,
+        return Request.Sphere(origin=csys.origin,
                               diameter=diameter)
     elif "cube" in function_names:
+        # TODO: rotations are not yet supported
         arguments = functions["cube"]
         return Request.Prism(dimensions=arguments["size"],
-                             origin=translation,
+                             origin=csys.origin,
                              origin_is_corner=not arguments["center"])
     elif "cylinder" in function_names:
         arguments = functions["cylinder"]
         # TODO: cones are not yet supported.
-        if arguments["r"] is not None:
+        # TODO center shift
+        if "r" in arguments:
             diameter = arguments["r"] * 2.0
-        else:
+        elif "r1" in arguments:
+            diameter = arguments["r1"] * 2.0
+        elif "d" in arguments:
             diameter = arguments["d"]
-        return Request.Hole(axis=axis,
+        else: # "d1"
+            diameter = arguments["d1"]
+        return Request.Hole(axis=csys.z_axis,
                             depth=arguments["h"],
-                            origin=translation,
+                            origin=csys.origin,
                             diameter=diameter)
     # end at ;
 def build_boolean_request(first_line: str, scad_file: io.TextIOWrapper) -> Request.BooleanRequest:
@@ -166,24 +182,42 @@ def build_boolean_request(first_line: str, scad_file: io.TextIOWrapper) -> Reque
     return combined_request
 
 
-def build_tree_from_scad(scad_file_name: str) -> Request.BooleanRequest:
-    with open(scad_file_name, "r") as f:
+def build_tree_from_scad(scad_file_name: str):
+    create_cleaned_scad_file(scad_file_name)
+    with open(get_cleaned_scad_name(scad_file_name), "r") as f:
         first_line = f.readline()
         function_name = read_function_name_in_line(first_line)
         while function_name is None:
             first_line = f.readline()
             function_name = read_function_name_in_line(first_line)
-        return build_boolean_request(first_line, f)
+        tree = build_boolean_request(first_line, f)
+    os.remove(get_cleaned_scad_name(scad_file_name))
+    return tree
 
 def print_file_line(f):
     next_line = f.readline()
     print(next_line)
 
+def get_cleaned_scad_name(scad_file_name):
+    return scad_file_name + ".temp"
+
+def create_cleaned_scad_file(scad_file_name):
+    END_SEQUENCES = [")", "}", ";", "{"]
+    with open(scad_file_name, "r") as f:
+        with open(get_cleaned_scad_name(scad_file_name), "w") as f_temp:
+            for line in f:
+                separator, index = tokenizer.get_separator_index(line, separators=END_SEQUENCES)
+                while index != -1:
+                    until_token = line[:index+1] + "\n"
+                    f_temp.write(until_token)
+                    line = line[index+1:]
+                    separator, index = tokenizer.get_separator_index(line, separators=END_SEQUENCES)
+
 if __name__ == "__main__":
     # text = "translate([0, 0, 0])\n"
     # print(read_vector_from_text(text))
 
-    filename = "cube.scad"
+    filename = "test.scad"
     combined_requset = build_tree_from_scad(filename)
     json_request = combined_requset.get_formatted_request()
 
