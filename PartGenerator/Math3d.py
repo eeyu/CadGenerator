@@ -1,6 +1,29 @@
-import Request
+import PartGenerator.Request as Request
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.spatial.transform import Rotation as R
+from dataclasses import dataclass
+
+@dataclass
+class CoordSystem:
+    def __init__(self):
+        self.z_axis: np.array = np.array([0.0, 0.0, 1.0])
+        self.x_axis: np.array = np.array([1.0, 0.0, 0.0])
+        self.origin: np.array = np.array([0.0, 0.0, 0.0])
+
+    def translate(self, disp: np.array):
+        self.origin += disp
+
+    def rotate(self, xyz_angles: np.array):
+        rotation = R.from_euler(seq='xyz', angles=xyz_angles.tolist(), degrees=True).as_matrix()
+        self.z_axis = rotation @ self.z_axis
+        self.x_axis = rotation @ self.x_axis
+        self.origin = rotation @ self.origin
+    def set_axis_orientation(self, xyz_angles: np.array):
+        rotation = R.from_euler(seq='xyz', angles=xyz_angles.tolist(), degrees=True).as_matrix()
+        self.z_axis = rotation @ np.array([0,0,1])
+        self.x_axis = rotation @ np.array([1,0,0])
+
 def is_within_cylinder(cylinder: Request.Hole, point: np.array, tolerance):
     # first, check within depth. project onto central axis
     # then, check within radius. distance from projection on to central axis
@@ -33,7 +56,11 @@ def check_triad_in_hole(triad, cylinder):
     return True
 
 def orientation_to_axis(orientation: np.array):
-    return np.array([1,1,1])
+    rotation = R.from_euler(seq='xyz', angles=orientation.tolist(), degrees=True).as_matrix()
+    z_axis = np.array([0,0,1])
+    x_axis = np.array([1,0,0])
+
+    return rotation @ z_axis, rotation @ x_axis
 
 if __name__ == "__main__":
 

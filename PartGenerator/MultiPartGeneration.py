@@ -13,7 +13,7 @@ import Send
 
 def random_boolean_type():
     if np.random.randint(0, 2) == 0:
-        return Request.BooleanType.ADD
+        return Request.BooleanType.UNION
     return Request.BooleanType.SUBTRACT
 
 i = 0
@@ -29,7 +29,7 @@ def generate_random_model_builder():
     master_length = np.linalg.norm(master_dimensions)
 
     builder.add_request(Request.Prism(get_increasing_index(),
-                                      Request.BooleanType.ADD,
+                                      Request.BooleanType.UNION,
                                       origin=np.array([0,0,0]),
                                       dimensions=master_dimensions))
 
@@ -61,7 +61,7 @@ def generate_random_model_builder():
         diameter = np.random.rand() * master_length / 5.0 + master_length / 10.0
         axis = np.random.rand(3) - 0.5
         builder.add_request(Request.Hole(get_increasing_index(),
-                                         Request.BooleanType.ADD,
+                                         Request.BooleanType.UNION,
                                          origin=origin,
                                          axis=axis,
                                          depth=depth,

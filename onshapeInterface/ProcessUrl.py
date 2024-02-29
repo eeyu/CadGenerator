@@ -4,6 +4,7 @@
 # Parses a url copy pasted from browser
 class OnshapeUrl:
     def __init__(self, url):
+        self.original_url = url
         self.elementID = None
         self.workspaceID = None
         self.documentID = None
