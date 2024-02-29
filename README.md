@@ -6,7 +6,7 @@ The following converts an scad file to a Brep format in onshape
 
 1. Create and load a new conda environment. Python v3.8+ works
 2. pip install -r requirements.txt
-3. For a quick demo, run 
+3. For a quick demo, cd into CadGenerator/ and run 
 ```
 python -m PartGenerator.scad_conversion_main --mode example --example 148
 ```
