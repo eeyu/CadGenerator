@@ -1,14 +1,14 @@
 import io
 from abc import ABC, abstractmethod
 from collections import OrderedDict
-import Request
+import PartGenerator.Request as Request
 import numpy as np
-import Math3d
+import PartGenerator.Math3d as Math3d
 import os
 import json
 from csg import tokenizer
 import onshapeInterface.ProcessUrl as ProcessUrl
-import Send
+import PartGenerator.Send as Send
 
 # TODO: Finish cylinder
 # TODO: more robust to scad file format
@@ -217,7 +217,7 @@ if __name__ == "__main__":
     # text = "translate([0, 0, 0])\n"
     # print(read_vector_from_text(text))
 
-    filename = "test.scad"
+    filename = "scad/test.scad"
     combined_requset = build_tree_from_scad(filename)
     json_request = combined_requset.get_formatted_request()
 

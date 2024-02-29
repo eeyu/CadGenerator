@@ -6,7 +6,7 @@ from PartGenerator import Request
 from stl import mesh
 from mpl_toolkits import mplot3d
 from matplotlib import pyplot
-import Math3d as math3d
+import PartGenerator.Math3d as math3d
 import numpy as np
 
 def build_part(json_dict: dict, part_url: ProcessUrl.OnshapeUrl, json_url: ProcessUrl.OnshapeUrl, name: str) -> mesh.Mesh:

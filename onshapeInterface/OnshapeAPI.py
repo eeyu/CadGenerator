@@ -34,7 +34,8 @@ class OnshapeAPI(ABC):
 
     # inputs is np array, unitsList is string array
     # returns parsed API request, or None if error occurred
-    def make_request(self, configuration: ConfigurationEncoder = None, payload: dict | list | None = None, use_post_param: bool = False):
+    def make_request(self, configuration: ConfigurationEncoder = None, payload = None, use_post_param: bool = False):
+        # Payload can be dict or none
         # Configuration of the request
         params = {}
         if configuration is not None:
