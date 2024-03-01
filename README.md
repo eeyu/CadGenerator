@@ -10,7 +10,7 @@ The following converts an scad file to a Brep format in onshape
 ```
 python -m PartGenerator.scad_conversion_main --mode example --example 148
 ```
-The available examples are 011, 039, 096, 107, 114, 128, 162, 167
+The available examples are 011, 096, 107, 114, 128, 162
 
 The output is located by default at this [part studio](https://cad.onshape.com/documents/c3b4576ef97b70b3e09ba2f0/w/2a155a6e88e3a953e49858f7/e/2a5362fe0e6cb33b327a98de)
 

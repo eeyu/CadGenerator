@@ -5,7 +5,7 @@ import PartGenerator.Send as Send
 import sys
 
 # Parse input arguments.
-valid_examples = ["011", "039", "096", "107", "114", "162", "167", "155", "148"]
+valid_examples = ["011", "096", "107", "114", "162", "148"]
 parser = argparse.ArgumentParser()
 parser.add_argument('--mode', help='choose "example" or "custom." Look at code to find which onshape urls to find output',
                     default='example')
