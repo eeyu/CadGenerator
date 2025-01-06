@@ -92,6 +92,118 @@ class AddFeature(OnshapeAPI.OnshapeAPI):
         response = self.make_request(payload=payload, use_post_param=False)
         return response.data
 
+class EvaluateFeaturescipt(OnshapeAPI.OnshapeAPI):
+    def __init__(self, url: RequestUrlCreator.OnshapeUrl):
+        super(EvaluateFeaturescipt, self).__init__(OnshapeAPI.ApiMethod.POST)
+        self.request_url = RequestUrlCreator.get_api_url("partstudios",
+                                                         "featurescript",
+                                                         document=url.documentID,
+                                                         workspace=url.workspaceID,
+                                                         element=url.elementID,
+                                                         wvm=url.wvm)
+        self.script = None
+        self.queries = None
+        self.source_microversion = None
+
+    def _get_api_url(self):
+        return self.request_url
+
+    def _get_headers(self):
+        return {'Accept': 'application/json;charset=UTF-8; qs=0.09',
+                'Content-Type': 'application/json'}
+
+    def send_request(self):
+        payload = {
+            "sourceMicroversion": self.source_microversion,
+            "script": self.script,
+            "queries" : self.queries,
+            "rejectMicroversionSkew": False
+        }
+        response = self.make_request(payload=payload, use_post_param=False)
+        return json.loads(response.data)
+
+    def get_query_result(self, response):
+        values = response["result"]["message"]["value"]
+        query_names = [value["message"]["value"][1]["message"]["value"]["message"]["value"] for value in values]
+        return query_names
+
+# class FeaturescriptCreator:
+    def set_query_sketch_construction(self):
+        # query_type: body_type, entity_type, geometry_type
+        script = """
+        function (context is Context, queries is map)
+        {
+            var all_query = qSketchFilter(qEverything(EntityType.EDGE), SketchObject.YES);
+            all_query = qConstructionFilter(all_query, ConstructionObject.YES);
+            var all_encoder = evaluateQuery(context, all_query);
+            return all_encoder;
+        }
+        """
+        queries = []
+        self.script = script
+        self.queries = queries
+        # return script, queries
+
+    def set_query_points(self):
+        # query_type: body_type, entity_type, geometry_type
+        script = """
+        function (context is Context, queries is map)
+        {
+            var all_query = qEverything(EntityType.VERTEX);
+            all_query = qBodyType(all_query, BodyType.POINT);
+            var all_encoder = evaluateQuery(context, all_query);
+            return all_encoder;
+        }
+        """
+        queries = []
+        self.script = script
+        self.queries = queries
+
+    def set_query_mate_connectors(self):
+        # query_type: body_type, entity_type, geometry_type
+        script = """
+        function (context is Context, queries is map)
+        {
+            var all_query = qEverything(EntityType.VERTEX);
+            all_query = qBodyType(all_query, BodyType.MATE_CONNECTOR);
+            var all_encoder = evaluateQuery(context, all_query);
+            return all_encoder;
+        }
+        """
+        queries = []
+        self.script = script
+        self.queries = queries
+
+    def set_query_sketch_faces(self):
+        script = """
+        function (context is Context, queries is map)
+        {
+            var all_query = qSketchFilter(qEverything(EntityType.FACE), SketchObject.YES);
+            var all_encoder = evaluateQuery(context, all_query);
+            return all_encoder;
+        }
+        """
+        queries = []
+        self.script = script
+        self.queries = queries
+        # return script, queries
+
+    def set_query_attribute(self, attribute_name : str):
+        script = """
+        function (context is Context, queries is map)
+        {{
+            var instantiatedBodies = qHasAttribute(qEverything(EntityType.BODY), "{attributeName}");
+
+            // This is what we are looking for
+            var outputKinematics = getAttribute(context, {{"entity" : instantiatedBodies, "name" : "{attributeName}"}});
+            return outputKinematics;
+        }}
+        """.format(attributeName=attribute_name)
+        queries = []
+        self.script = script
+        self.queries = queries
+        # return script, queries
+
 class NewPartStudio(OnshapeAPI.OnshapeAPI):
     def __init__(self, url: RequestUrlCreator.OnshapeUrl):
         super(NewPartStudio, self).__init__(OnshapeAPI.ApiMethod.POST)
