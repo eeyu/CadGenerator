@@ -61,7 +61,7 @@ class Plane:
                         "typeName": "BTMParameterQuantity",
                         "message": {
                             "value": 0.0,
-                            "expression": "0 deg",
+                            "expression": "0 rad",
                             "parameterId": "angle",
                         }
                     },
@@ -142,8 +142,8 @@ class SketchFeature:
 
 class SketchEntityLine:
     def __init__(self, start, stop, name, is_construction=False):
-        start /= 1000.0
-        stop /= 1000.0
+        # start = start.copy() / 1000.0
+        # stop = stop.copy() / 1000.0
         direction = stop - start
         length = np.linalg.norm(direction)
         direction = direction / length
@@ -175,6 +175,68 @@ class SketchEntityLine:
     def get_json(self):
         return self.message
 
+class SketchEntityCircle:
+    def __init__(self, name, center, radius):
+        self.message = {
+                    "type": 4,
+                    "typeName": "BTMSketchCurve",
+                    "message": {
+                        "geometry": {
+                            "type": 115,
+                            "typeName": "BTCurveGeometryCircle",
+                            "message": {
+                                "radius": radius,
+                                "xCenter": float(center[0]),
+                                "yCenter": float(center[1]),
+                                "xDir": 1.0,
+                                "yDir": 0.0,
+                                "clockwise": False
+                            }
+                        },
+                        "centerId": name + ".center",
+                        "internalIds": [],
+                        "isConstruction": False,
+                        "parameters": [],
+                        "entityId": name,
+                    }
+                }
+
+    def get_json(self):
+        return self.message
+
+class SketchEntityArc:
+    def __init__(self, name, center, end_angle, radius, start_angle, clock_sign, ref_vec):
+        self.message = {
+                    "type": 155,
+                    "typeName": "BTMSketchCurveSegment",
+                    "message": {
+                        "startPointId": name + ".start",
+                        "endPointId": name + ".end",
+                        "startParam": start_angle, #rad
+                        "endParam": end_angle, #rad
+                        "offsetCurveExtensions": [],
+                        "geometry": {
+                            "type": 115,
+                            "typeName": "BTCurveGeometryCircle",
+                            "message": {
+                                "radius": radius,
+                                "xCenter": float(center[0]),
+                                "yCenter": float(center[1]),
+                                "xDir": float(ref_vec[0]),
+                                "yDir": float(ref_vec[1]),
+                                "clockwise": clock_sign
+                            }
+                        },
+                        "centerId": name + ".center",
+                        "internalIds": [],
+                        "isConstruction": False,
+                        "parameters": [],
+                        "entityId": name,
+                    }
+                }
+
+    def get_json(self):
+        return self.message
 
 class SketchConstraintCoincident:
     def __init__(self, name1, name2):
@@ -331,7 +393,7 @@ class MateConnector:
                         "message": {
                             "units": "",
                             "value": 0.0,
-                            "expression": str(origin_translation[0]) + " mm",
+                            "expression": str(origin_translation[0]) + " m",
                             "isInteger": False,
                             "parameterId": "translationX"
                         }
@@ -342,7 +404,7 @@ class MateConnector:
                         "message": {
                             "units": "",
                             "value": 0.0,
-                            "expression": str(origin_translation[1]) + " mm",
+                            "expression": str(origin_translation[1]) + " m",
                             "isInteger": False,
                             "parameterId": "translationY"
                         }
@@ -353,7 +415,7 @@ class MateConnector:
                         "message": {
                             "units": "",
                             "value": 0.0,
-                            "expression": str(origin_translation[2]) + " mm",
+                            "expression": str(origin_translation[2]) + " m",
                             "isInteger": False,
                             "parameterId": "translationZ"
                         }
@@ -374,7 +436,7 @@ class MateConnector:
                         "message": {
                             "units": "",
                             "value": 0.0,
-                            "expression": str(rotation) + " deg",
+                            "expression": str(rotation) + " rad",
                             "isInteger": False,
                             "parameterId": "rotation"
                         }
@@ -555,7 +617,7 @@ class TransformRotation:
                         "message": {
                             "units": "",
                             "value": 0.0,
-                            "expression": str(angle) + " deg",
+                            "expression": str(angle) + " rad",
                             "isInteger": False,
                             "parameterId": "angle"
                         }
@@ -683,7 +745,7 @@ class FeatureExtrude:
                         "type": 147,
                         "typeName": "BTMParameterQuantity",
                         "message": {
-                            "expression": str(e1) + " mm",
+                            "expression": str(e1) + " m",
                             "parameterId": "depth"
                         }
                     },
@@ -718,7 +780,7 @@ class FeatureExtrude:
                         "type": 147,
                         "typeName": "BTMParameterQuantity",
                         "message": {
-                            "expression": str(e2) + " mm",
+                            "expression": str(e2) + " m",
                             "parameterId": "secondDirectionDepth"
                         }
                     },
@@ -788,59 +850,64 @@ def create_sketch_plane(name, url, yaw, pitch, roll, px, py, pz):
     addFeature.source_microversion = microversion
     addFeature.send_request()
 
-    # Get the mc
-    ev_featurescript.set_query_mate_connectors()
-    output = ev_featurescript.send_request()
-    query = ev_featurescript.get_query_result(output)
-    microversion = get_microversion(url)
 
-    # Put the axis handle on the mate connector
-    sketch = SketchFeature("Yaw_sketch", query[-1])
-    line1 = SketchEntityLine(start=np.array([0., 0.]), stop=np.array([1., 0.]), name="hello"+name, is_construction=True)
-    sketch.add_entity(line1)
-    feature = sketch.get_json()
-
-    addFeature = PartStudios.AddFeature(url)
-    addFeature.json_feature = feature
-    addFeature.source_microversion = microversion
-    addFeature.send_request()
 
     # Transform 1
-    # First grab the mate connector and the axis of rotation
-    microversion = get_microversion(url)
-    ev_featurescript.set_query_mate_connectors()
-    output = ev_featurescript.send_request()
-    query = ev_featurescript.get_query_result(output)
-    mate_connector = query[-1]
+    if pitch != 0.0:
+        # Get the mc
+        ev_featurescript.set_query_mate_connectors()
+        output = ev_featurescript.send_request()
+        query = ev_featurescript.get_query_result(output)
+        microversion = get_microversion(url)
 
-    ev_featurescript.set_query_sketch_construction()
-    output = ev_featurescript.send_request()
-    query = ev_featurescript.get_query_result(output)
-    rotation_axis = query[-1]
+        # Put the axis handle on the mate connector
+        sketch = SketchFeature("Yaw_sketch", query[-1])
+        line1 = SketchEntityLine(start=np.array([0., 0.]), stop=np.array([1., 0.]), name="hello" + name,
+                                 is_construction=True)
+        sketch.add_entity(line1)
+        feature = sketch.get_json()
 
-    feature = TransformRotation(feature_name="Transform Pitch", feature_id="asdf2"+name, target_geometry_id=mate_connector,
-                                axis_geometry_id=rotation_axis, angle=pitch)
-    feature = feature.get_json()
-    addFeature = PartStudios.AddFeature(url)
-    addFeature.json_feature = feature
-    addFeature.source_microversion = microversion
-    addFeature.send_request()
+        addFeature = PartStudios.AddFeature(url)
+        addFeature.json_feature = feature
+        addFeature.source_microversion = microversion
+        addFeature.send_request()
+
+        # First grab the mate connector and the axis of rotation
+        microversion = get_microversion(url)
+        ev_featurescript.set_query_mate_connectors()
+        output = ev_featurescript.send_request()
+        query = ev_featurescript.get_query_result(output)
+        mate_connector = query[-1]
+
+        ev_featurescript.set_query_sketch_construction()
+        output = ev_featurescript.send_request()
+        query = ev_featurescript.get_query_result(output)
+        rotation_axis = query[-1]
+
+        feature = TransformRotation(feature_name="Transform Pitch", feature_id="asdf2"+name, target_geometry_id=mate_connector,
+                                    axis_geometry_id=rotation_axis, angle=pitch)
+        feature = feature.get_json()
+        addFeature = PartStudios.AddFeature(url)
+        addFeature.json_feature = feature
+        addFeature.source_microversion = microversion
+        addFeature.send_request()
 
     # Transform 2
-    # Grab the MC again
-    microversion = get_microversion(url)
-    ev_featurescript.set_query_mate_connectors()
-    output = ev_featurescript.send_request()
-    query = ev_featurescript.get_query_result(output)
-    mate_connector = query[-1]
+    if roll != 0.0:
+        # Grab the MC again
+        microversion = get_microversion(url)
+        ev_featurescript.set_query_mate_connectors()
+        output = ev_featurescript.send_request()
+        query = ev_featurescript.get_query_result(output)
+        mate_connector = query[-1]
 
-    feature = TransformRotation(feature_name="Transform Roll", feature_id="asdf_roll"+name,
-                                target_geometry_id=mate_connector, axis_geometry_id=mate_connector, angle=roll)
-    feature = feature.get_json()
-    addFeature = PartStudios.AddFeature(url)
-    addFeature.json_feature = feature
-    addFeature.source_microversion = microversion
-    addFeature.send_request()
+        feature = TransformRotation(feature_name="Transform Roll", feature_id="asdf_roll"+name,
+                                    target_geometry_id=mate_connector, axis_geometry_id=mate_connector, angle=roll)
+        feature = feature.get_json()
+        addFeature = PartStudios.AddFeature(url)
+        addFeature.json_feature = feature
+        addFeature.source_microversion = microversion
+        addFeature.send_request()
 
     microversion = get_microversion(url)
     ev_featurescript.set_query_mate_connectors()
@@ -854,9 +921,9 @@ def create_sketch_plane(name, url, yaw, pitch, roll, px, py, pz):
 
 if __name__ == "__main__":
     url = RequestUrlCreator.OnshapeUrl("https://cad.onshape.com/documents/c36fe1255ee04ace7323d7d2/w/5f2505bde953b6cf71b7011f/e/e41a3a4624ccb8c5ee3a50f3")
-    # getFeatures = PartStudios.GetFeatureList(url)
-    # response = getFeatures.send_request()
-    # json_print(response["features"])
+    getFeatures = PartStudios.GetFeatureList(url)
+    response = getFeatures.send_request()
+    json_print(response["features"])
 
     # with open("mate_connector_reference.json", "r") as f:
     #     s = f.read()
