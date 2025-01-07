@@ -270,21 +270,6 @@ class SketchConstraintCoincident:
         return self.message
 
 
-
-# class SketchPlane:
-#     def __init__(self, theta, phi, lambd, px, py, pz):
-#         # If theta is a default plane, choose simply
-#         # If not default plane, do hard mode
-#         self.final_sketch_plane = create_sketch_plane(theta, phi, lambd, px, py, pz)
-#
-#     def get_json(self):
-#         # extrude1, extrude2, sketch
-#         pass
-#
-#     def get_geometry_id(self):
-#         pass
-
-
 class MateConnector:
     def __init__(self, feature_name, id_name, rotation_axis, rotation, origin_geometry_id, origin_translation):
         if rotation_axis == "x":
@@ -340,43 +325,11 @@ class MateConnector:
                         }
                     },
                     {
-                        "type": 148,
-                        "typeName": "BTMParameterQueryList",
-                        "message": {
-                            "queries": [],
-                            "parameterId": "secondaryOriginQuery"
-                        }
-                    },
-                    {
-                        "type": 148,
-                        "typeName": "BTMParameterQueryList",
-                        "message": {
-                            "queries": [],
-                            "parameterId": "originAdditionalQuery"
-                        }
-                    },
-                    {
                         "type": 144,
                         "typeName": "BTMParameterBoolean",
                         "message": {
                             "value": True,
                             "parameterId": "realign"
-                        }
-                    },
-                    {
-                        "type": 148,
-                        "typeName": "BTMParameterQueryList",
-                        "message": {
-                            "queries": [],
-                            "parameterId": "primaryAxisQuery"
-                        }
-                    },
-                    {
-                        "type": 148,
-                        "typeName": "BTMParameterQueryList",
-                        "message": {
-                            "queries": [],
-                            "parameterId": "secondaryAxisQuery"
                         }
                     },
                     {
@@ -461,47 +414,6 @@ class MateConnector:
                         "type": 144,
                         "typeName": "BTMParameterBoolean",
                         "message": {
-                            "value": True,
-                            "parameterId": "specifyNormal"
-                        }
-                    },
-                    {
-                        "type": 147,
-                        "typeName": "BTMParameterQuantity",
-                        "message": {
-                            "units": "",
-                            "value": 1.0,
-                            "expression": "0",
-                            "isInteger": False,
-                            "parameterId": "nx"
-                        }
-                    },
-                    {
-                        "type": 147,
-                        "typeName": "BTMParameterQuantity",
-                        "message": {
-                            "units": "",
-                            "value": 2.0,
-                            "expression": "0",
-                            "isInteger": False,
-                            "parameterId": "ny"
-                        }
-                    },
-                    {
-                        "type": 147,
-                        "typeName": "BTMParameterQuantity",
-                        "message": {
-                            "units": "",
-                            "value": 0.0,
-                            "expression": "0",
-                            "isInteger": False,
-                            "parameterId": "nz"
-                        }
-                    },
-                    {
-                        "type": 144,
-                        "typeName": "BTMParameterBoolean",
-                        "message": {
                             "value": False,
                             "parameterId": "flipPrimary"
                         }
@@ -516,22 +428,7 @@ class MateConnector:
                             "parameterId": "secondaryAxisType"
                         }
                     },
-                    {
-                        "type": 144,
-                        "typeName": "BTMParameterBoolean",
-                        "message": {
-                            "value": False,
-                            "parameterId": "isForSubFeature"
-                        }
-                    }
                 ],
-                "suppressed": False,
-                "namespace": "",
-                "subFeatures": [],
-                "returnAfterSubfeatures": False,
-                "suppressionState": {
-                    "type": 0
-                }
             }
         }
 
@@ -577,14 +474,6 @@ class TransformRotation:
                         }
                     },
                     {
-                        "type": 144,
-                        "typeName": "BTMParameterBoolean",
-                        "message": {
-                            "value": False,
-                            "parameterId": "oppositeDirectionEntity"
-                        }
-                    },
-                    {
                         "type": 148,
                         "typeName": "BTMParameterQueryList",
                         "message": {
@@ -602,15 +491,6 @@ class TransformRotation:
                             "parameterId": "transformAxis"
                         }
                     },
-                    {
-                        "type": 148,
-                        "typeName": "BTMParameterQueryList",
-                        "message": {
-                            "queries": [],
-                            "parameterId": "transformDirection"
-                        }
-                    },
-
                     {
                         "type": 147,
                         "typeName": "BTMParameterQuantity",
@@ -646,7 +526,24 @@ class TransformRotation:
         return self.message
 
 class FeatureExtrude:
-    def __init__(self, name, sketch_geometry_id, e1, e2):
+    def __init__(self, name, sketch_geometry_id, e1, e2, boolean_type, direction_type):
+        # EXTRUDE_OPERATIONS = ["NewBodyFeatureOperation", "JoinFeatureOperation",
+        #                       "CutFeatureOperation", "IntersectFeatureOperation"]
+        # EXTENT_TYPE = ["OneSideFeatureExtentType", "SymmetricFeatureExtentType",
+        #                "TwoSidesFeatureExtentType"]
+        if boolean_type == 0:
+            boolean_type = "NEW"
+        elif boolean_type == 1:
+            boolean_type = "ADD"
+        elif boolean_type == 2:
+            boolean_type = "REMOVE"
+        else: # boolean_type == 3:
+            boolean_type = "INTERSECT"
+
+        symmetric = False
+        if direction_type == 1: # Symmetric
+            symmetric = True
+
         self.message = {
             "type": 134,
             "typeName": "BTMFeature",
@@ -680,7 +577,7 @@ class FeatureExtrude:
                         "typeName": "BTMParameterEnum",
                         "message": {
                             "enumName": "NewBodyOperationType",
-                            "value": "NEW",
+                            "value": boolean_type,
                             "namespace": "",
                             "parameterId": "operationType"
                         }
@@ -693,16 +590,6 @@ class FeatureExtrude:
                             "value": "NEW",
                             "namespace": "",
                             "parameterId": "surfaceOperationType"
-                        }
-                    },
-                    {
-                        "type": 145,
-                        "typeName": "BTMParameterEnum",
-                        "message": {
-                            "enumName": "FlatOperationType",
-                            "value": "REMOVE",
-                            "namespace": "",
-                            "parameterId": "flatOperationType"
                         }
                     },
                     {
@@ -750,11 +637,11 @@ class FeatureExtrude:
                         }
                     },
                     {
-                        "type": 148,
-                        "typeName": "BTMParameterQueryList",
+                        "type": 144,
+                        "typeName": "BTMParameterBoolean",
                         "message": {
-                            "queries": [],
-                            "parameterId": "extrudeDirection"
+                            "value": symmetric,
+                            "parameterId": "symmetric"
                         }
                     },
 
@@ -762,7 +649,7 @@ class FeatureExtrude:
                         "type": 144,
                         "typeName": "BTMParameterBoolean",
                         "message": {
-                            "value": True,
+                            "value": not symmetric,
                             "parameterId": "hasSecondDirection"
                         }
                     },
@@ -788,34 +675,18 @@ class FeatureExtrude:
                         "type": 144,
                         "typeName": "BTMParameterBoolean",
                         "message": {
-                            "value": False,
+                            "value": True,
                             "parameterId": "defaultScope"
-                        }
-                    },
-                    {
-                        "type": 148,
-                        "typeName": "BTMParameterQueryList",
-                        "message": {
-                            "queries": [],
-                            "parameterId": "booleanScope"
                         }
                     },
                     {
                         "type": 144,
                         "typeName": "BTMParameterBoolean",
                         "message": {
-                            "value": False,
+                            "value": True,
                             "parameterId": "defaultSurfaceScope"
                         }
                     },
-                    {
-                        "type": 148,
-                        "typeName": "BTMParameterQueryList",
-                        "message": {
-                            "queries": [],
-                            "parameterId": "booleanSurfaceScope"
-                        }
-                    }
                 ]
             }
         }
@@ -832,7 +703,7 @@ def get_microversion(url):
     microversion = response["sourceMicroversion"]
     return microversion
 
-def create_sketch_plane(name, url, yaw, pitch, roll, px, py, pz):
+def create_sketch_plane(name, url, z1, x1, z2, px, py, pz):
     microversion = get_microversion(url)
 
     # First place the mate connector
@@ -842,7 +713,7 @@ def create_sketch_plane(name, url, yaw, pitch, roll, px, py, pz):
     output = ev_featurescript.send_request()
     query = ev_featurescript.get_query_result(output)
 
-    mate_connector = MateConnector("Sketch Plane " + name, "sk"+name, "z", yaw, query[0], np.array([px, py, pz]))
+    mate_connector = MateConnector("Sketch Plane " + name, "sk" + name, "z", z1, query[0], np.array([px, py, pz]))
     feature = mate_connector.get_json()
 
     addFeature = PartStudios.AddFeature(url)
@@ -853,7 +724,7 @@ def create_sketch_plane(name, url, yaw, pitch, roll, px, py, pz):
 
 
     # Transform 1
-    if pitch != 0.0:
+    if x1 != 0.0:
         # Get the mc
         ev_featurescript.set_query_mate_connectors()
         output = ev_featurescript.send_request()
@@ -862,7 +733,7 @@ def create_sketch_plane(name, url, yaw, pitch, roll, px, py, pz):
 
         # Put the axis handle on the mate connector
         sketch = SketchFeature("Yaw_sketch", query[-1])
-        line1 = SketchEntityLine(start=np.array([0., 0.]), stop=np.array([1., 0.]), name="hello" + name,
+        line1 = SketchEntityLine(start=np.array([0., 0.]), stop=np.array([0., 1.]), name="hello" + name,
                                  is_construction=True)
         sketch.add_entity(line1)
         feature = sketch.get_json()
@@ -885,7 +756,7 @@ def create_sketch_plane(name, url, yaw, pitch, roll, px, py, pz):
         rotation_axis = query[-1]
 
         feature = TransformRotation(feature_name="Transform Pitch", feature_id="asdf2"+name, target_geometry_id=mate_connector,
-                                    axis_geometry_id=rotation_axis, angle=pitch)
+                                    axis_geometry_id=rotation_axis, angle=x1)
         feature = feature.get_json()
         addFeature = PartStudios.AddFeature(url)
         addFeature.json_feature = feature
@@ -893,7 +764,7 @@ def create_sketch_plane(name, url, yaw, pitch, roll, px, py, pz):
         addFeature.send_request()
 
     # Transform 2
-    if roll != 0.0:
+    if z2 != 0.0:
         # Grab the MC again
         microversion = get_microversion(url)
         ev_featurescript.set_query_mate_connectors()
@@ -902,7 +773,7 @@ def create_sketch_plane(name, url, yaw, pitch, roll, px, py, pz):
         mate_connector = query[-1]
 
         feature = TransformRotation(feature_name="Transform Roll", feature_id="asdf_roll"+name,
-                                    target_geometry_id=mate_connector, axis_geometry_id=mate_connector, angle=roll)
+                                    target_geometry_id=mate_connector, axis_geometry_id=mate_connector, angle=z2)
         feature = feature.get_json()
         addFeature = PartStudios.AddFeature(url)
         addFeature.json_feature = feature
@@ -930,7 +801,7 @@ if __name__ == "__main__":
     # feature = json.loads(s)
 
 
-    sketch_plane, microversion = create_sketch_plane("sketch 1", url, yaw=30, pitch=30, roll=30, px=10, py=10, pz=10)
+    sketch_plane, microversion = create_sketch_plane("sketch 1", url, z1=30, x1=30, z2=30, px=10, py=10, pz=10)
 
     # The sketch plane has been created. Now add the sketch
     sketch = SketchFeature("Sketch42", plane_geometry_id=sketch_plane)

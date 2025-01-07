@@ -30,7 +30,7 @@ if __name__ == "__main__":
         phi = extrude_seq.sketch_plane._phi
         gamma = extrude_seq.sketch_plane._gamma
 
-        sketch_plane, microversion = generate_cad.create_sketch_plane(str(num), url, yaw=theta, pitch=phi, roll=gamma, px=sketch_position[0], py=sketch_position[1], pz=sketch_position[2])
+        sketch_plane, microversion = generate_cad.create_sketch_plane(str(num), url, z1=phi, x1=theta, z2=gamma, px=sketch_position[0], py=sketch_position[1], pz=sketch_position[2])
 
         # Now do the sketch
         sketch = SketchFeature("Sketch" + str(num), plane_geometry_id=sketch_plane)
@@ -75,7 +75,9 @@ if __name__ == "__main__":
         output = ev_featurescript.send_request()
         query = ev_featurescript.get_query_result(output)
 
-        extrude = FeatureExtrude("Extrude " + str(num), query[-1], extrude_seq.extent_one, extrude_seq.extent_two)
+        if extrude_seq.extent_one < 0:
+            extrude_seq.extent_one *= -1 # TODO verify this
+        extrude = FeatureExtrude("Extrude " + str(num), query[-1], extrude_seq.extent_one, extrude_seq.extent_two, extrude_seq.operation, extrude_seq.extent_type)
         feature = extrude.get_json()
         addFeature = PartStudios.AddFeature(url)
         addFeature.json_feature = feature
