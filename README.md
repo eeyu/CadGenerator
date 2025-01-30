@@ -1,4 +1,11 @@
 # CadGenerator
+This repo contains a few different projects, all aligned by the Onshape API Wrapper
+
+## Edittable Onshape from Python
+Create edittable Onshape part studios with feature trees from python.
+
+Look at GenCADGenerator > generate_cad and program_to_cad. The former contains the basic commands, while the latter appends conversion of CAD programs from the DeepCAD dataset https://github.com/ChrisWu1997/DeepCAD 
+
 
 ## Scad to Onshape
 The following converts an scad file to a Brep format in onshape
